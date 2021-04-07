@@ -1,4 +1,5 @@
 import json
+import os
 import re
 
 import numpy as np
@@ -54,10 +55,13 @@ def maybe_jsonify(value):
 
 
 def result_to_df(data, field_info):
-    # The records returned from Airtable won't include any fields for which all values
-    # are NULL, but we always want those fields to exist in the database, so we create
-    # the dataframe with the full list of fields returned by Airtable's metadata API
-    # (plus the implicit `id` and `createdTime` fields)
+    """Return `data` from Airtable converted to a DataFrame.
+
+    The records returned from Airtable won't include any fields for which all values
+    are NULL, but we always want those fields to exist in the database, so we create
+    the dataframe with the full list of fields returned by Airtable's metadata API
+    (plus the implicit `id` and `createdTime` fields).
+    """
     columns = ["id"] + list(field_info.keys()) + ["createdTime"]
     df = pd.DataFrame(process_records(data), columns=columns)
     for field_name, field_type in field_info.items():
@@ -191,10 +195,10 @@ def load(connection, airtable, table_name, field_info, destination):
 
 def run(base_id, table_name, destination):
     engine = get_engine()
-    airtable = AirtableClient(base_id)
+    airtable = AirtableClient(base_id, os.environ["AIRTABLE_API_KEY"])
     log.info("reading airtable metadata")
     metadata = airtable.get_metadata()
-    log.info("loading data", destination=destination)
+    log.info("loading data", table_name=table_name, destination=destination)
     count = load(engine, airtable, table_name, metadata[table_name], destination)
     log.info("done loading data", count=count, destination=destination)
 

@@ -2,6 +2,7 @@ import collections
 import concurrent.futures
 import datetime
 import decimal
+import os
 
 import structlog
 import yaml
@@ -88,7 +89,9 @@ def send_records(airtable, airtable_table, result, table_info, field_mappings):
 def run(config_file, max_workers=None):
     engine = get_engine()
     config = read_config(config_file)
-    airtable = AirtableClient(config["airtable_base_id"])
+    airtable = AirtableClient(
+        config["airtable_base_id"], os.environ["AIRTABLE_API_KEY"]
+    )
     airtable_table = config["airtable_table_name"]
     metadata = airtable.get_metadata()
     field_mappings = get_field_mappings(metadata[airtable_table].keys())

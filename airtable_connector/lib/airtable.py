@@ -1,6 +1,5 @@
 import itertools
 import math
-import os
 import time
 import urllib.parse
 
@@ -18,11 +17,10 @@ class AirtableClient:
     def __init__(
         self,
         base_id,
-        api_key=None,
+        api_key,
         write_chunk_size=10,
         requests_per_second_limit=5,
     ):
-        api_key = api_key or os.environ["AIRTABLE_API_KEY"]
         self.base_id = base_id
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {api_key}"})
@@ -66,7 +64,7 @@ class AirtableClient:
 
     def get_metadata(self, force_refresh=False):
         """Return a `dict` of {table_name: {field_name: field_type}}."""
-        if (self.metadata is None) or force_refresh:
+        if self.metadata is None or force_refresh:
             response = self.request(
                 "get", f"https://api.airtable.com/v0/meta/bases/{self.base_id}/tables"
             )
